@@ -12,13 +12,15 @@ from nltk.stem.porter import PorterStemmer
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.feature import CountVectorizer, IDF
 from pyspark.sql.functions import udf
-from pyspark.sql.types import ArrayType, StringType
+from pyspark.sql.types import *
 from pyspark.sql import Row
 import pyspark.sql.functions as F
 import pickle
-from pyspark.sql.types import IntegerType
 PUNCTUATION = set(string.punctuation)
 STOPWORDS = set(stopwords.words('english'))
+addl_punctuation = set(['...', '`', '¿','⸮'])
+PUNCTUATION = PUNCTUATION.union(addl_punctuation)
+
 
 CONTRACTIONS = { 
 "ain't": "am not", "aren't": "are not", "can't": "cannot","can't've": "cannot have","'cause": "because",
@@ -47,6 +49,7 @@ def clean_text(text, remove_stopwords=True):
         new_text = [CONTRACTIONS[w] if w in CONTRACTIONS else w for w in text]
         text = " ".join(new_text)
     
+    text = re.sub(r'^https?:\/\/.*[\r\n]*', '', text, flags=re.MULTILINE)
     tokens = word_tokenize(text)
     tokens = [w for w in tokens if w not in PUNCTUATION]
     if remove_stopwords==True:
@@ -89,4 +92,5 @@ def clean_data(df, n_words_summary=50, remove_stopwords=True):
     # Clean Content column
     cleantext_udf = udf(clean_text, StringType())
     df = df.withColumn('content', cleantext_udf(df.content, F.lit(remove_stopwords)))
+    df = df.withColumn('summary', cleantext_udf(df.summary, F.lit(False)))
     return df
