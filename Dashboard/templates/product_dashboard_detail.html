@@ -1,0 +1,348 @@
+<!-- License: MIT License file can be found in the root folder 'Dashboard' -->
+<!-- This includes:
+ License_CreativeTIM: Copyright (c) 2017 Creative Tim
+ License_PivotTable: PivotTable.js is © 2012-2013 Nicolas Kruchten, Datacratic, other contributors
+ -->
+<!-- Please add their MIT-License to your project if you use any resource from their project -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <link rel="icon" type="image/png" href="static/img/favicon.ico">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+
+    <title>Dashboard Example</title>
+
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'/>
+    <meta name="viewport" content="width=device-width"/>
+
+    <!-- Bootstrap core CSS     -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/static/css/animate.min.css" rel="stylesheet"/>
+    <link href="/static/css/light-bootstrap-dashboard.css" rel="stylesheet"/>
+    <link href="/static/css/demo.css" rel="stylesheet"/>
+    <link href="/static/css/general.css" rel="stylesheet"/>
+    <link href="/static/css/search.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/css/pe-icon-7-stroke.css" rel="stylesheet"/>
+
+    <!-- test include -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.min.js"></script>
+
+    <!-- PivotTable.js libs from ../dist -->
+    <link rel="stylesheet" type="text/css" href="static/dist/pivot.css">
+    <script type="text/javascript" src="static/dist/pivot.js"></script>
+    <script type="text/javascript" src="static/dist/c3_renderers.js"></script>
+    <style>
+        .table-responsive {
+          font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        .table-responsive td, .table-responsive th {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+
+        .table-responsive tr:nth-child(even){background-color: #f2f2f2;}
+
+        .table-responsive tr:hover {background-color: #ddd;}
+
+        .table-responsive th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          text-align: left;
+          background-color: #416acc;
+          color: white;
+        }
+        .collapsible {
+          background-color: #777;
+          color: white;
+          cursor: pointer;
+          padding: 18px;
+          width: 100%;
+          border: none;
+          text-align: left;
+          outline: none;
+          font-size: 15px;
+        }
+
+        .neg {
+            /*background-color: #ffe8e8;*/
+            color: #bc0107;
+        }
+        .pos {
+            /*background-color: #e8ffe9;*/
+            color: #006604;
+        }
+
+/*        .active, .collapsible:hover {
+          background-color: #555;
+        }*/
+
+
+        .collapsecontent {
+          padding: 0 18px;
+          display: none;
+          overflow: hidden;
+          background-color: #f1f1f1;
+        }
+
+        table, tr, td, th
+        {
+            border: 1px solid black;
+            border-collapse:collapse;
+        }
+
+        img.button_open{
+          content:url('http://code.stephenmorley.org/javascript/collapsible-lists/button-open.png');
+          cursor:pointer;
+        }
+
+        img.button_closed{
+          content: url('http://code.stephenmorley.org/javascript/collapsible-lists/button-closed.png');
+          cursor:pointer;
+        }
+
+    </style>
+
+
+
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar" data-color="blue" data-image="static/img/sidebar-2.jpg">
+
+        <div class="sidebar-wrapper">
+            <div class="logo">
+                <a class="simple-text">
+                    Company Reviews
+                </a>
+            </div>
+
+            <ul class="nav">
+                <li class="active">
+                    <a href="/dashboard">
+                        <i class="pe-7s-graph"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+            <ul class="nav">
+                <li class="active">
+                    <a href="/dashboard/product/">
+                        <i class="pe-7s-graph"></i>
+                        <p>Product Reviews</p>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="main-panel">
+        <nav class="navbar navbar-default navbar-fixed">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand">Dashboard</a>
+                </div>
+            </div>
+        </nav>
+
+
+        <div class="content" style="margin-bottom: 0px !important; padding-bottom: 0px !important; min-height: 0px !important;">
+            <div class="container-fluid">
+              <div class="row">
+                    <div class="card">
+                  <div class="header">
+                      <h4 class="title">Negative Review Insights</h4>
+                      <p class="category">Currently: {{ selectedTable }}</p>
+                      <img src="data:image/png;base64,{{ img }}">
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+
+        <div class="content">
+            <div class="container-fluid" >
+                <div class="row">
+                    <div class="card ">
+                        <div class="header">
+                            <h4 class="title">Report Configurator</h4>
+                            <p class="category">Currently: {{ selectedTable }}</p>
+                            <form action="{{ url_for('product_dashboard', pid=PID) }}" method="post">
+                                <select name="whichProduct" onchange="this.form.submit();">
+                                    <option>Which Reviews?</option>
+                                    {% for entry in tables.iterrows() %}
+                                    <option>{{ entry[1][0] }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </form>
+                        </div>
+                        <div class="content">
+                        
+
+                        {% if cmd == True %}
+                        <table class="table-responsive" border="0">
+                              <tr>
+                                  <th>Summary</th>
+                                  <th>Sentiment</th>
+                                  <th>Probability</th>
+                              </tr>
+                            {% for row in table.iterrows() %}
+                              {% if row[1][2] == 1 %}
+                              <tr>
+                                <td class='{{ "group" }}{{ loop.index }}'>{{ row[1][1] }}</td>
+                                <td class='pos'>Positive</td>
+                                <td>{{ (100*row[1][4])|round(1) }}%</td>
+                              </tr>
+                              {% else %}
+                              <tr>
+                                <td class='{{ "group" }}{{ loop.index }}'>{{ row[1][1] }}</td>
+                                <td class='neg'>Negative</td>
+                                <td>{{ (100*row[1][4])|round(1) }}%</td>
+                              </tr>
+                              {% endif %}
+                              <tr class='{{ "group" }}{{ loop.index }}'>
+                                <td>{{ row[1][0] }}</td>
+                              </tr>
+                            {% endfor %}
+                            {% endif %}
+                            </table>
+
+
+                        <script>
+                        var coll = document.getElementsByClassName("collapsible");
+                        var i;
+
+                        for (i = 0; i < coll.length; i++) {
+                          coll[i].addEventListener("click", function() {
+                            this.classList.toggle("active");
+                            var content = this.nextElementSibling;
+                            if (content.style.display === "block") {
+                              content.style.display = "none";
+                            } else {
+                              content.style.display = "block";
+                            }
+                          });
+                        }
+
+                        function CreateGroup(group_name)
+                            {
+                                // Create Button(Image)
+                                $('td.' + group_name).prepend("<img class='" + group_name + " button_closed'> ");
+                                // Add Padding to Data
+                                $('tr.' + group_name).each(function () {
+                                    var first_td = $(this).children('td').first();
+                                    var padding_left = parseInt($(first_td).css('padding-left'));
+                                    $(first_td).css('padding-left', String(padding_left + 25) + 'px');
+                                });
+                                RestoreGroup(group_name);
+                                
+                                // Tie toggle function to the button
+                                $('img.' + group_name).click(function(){
+                                    ToggleGroup(group_name);
+                                });
+                            }
+
+                            function ToggleGroup(group_name)
+                            {
+                                ToggleButton($('img.' + group_name));
+                                RestoreGroup(group_name);
+                            }
+
+                            function RestoreGroup(group_name)
+                            {
+                                if ($('img.' + group_name).hasClass('button_open'))
+                                {
+                                    // Open everything
+                                    $('tr.' + group_name).show();
+                                    
+                                    // Close subgroups that been closed
+                                    $('tr.' + group_name).find('img.button_closed').each(function () {
+                                        sub_group_name = $(this).attr('class').split(/\s+/)[0];
+                                        //console.log(sub_group_name);
+                                        RestoreGroup(sub_group_name);
+                                    });
+                                }
+                                
+                                if ($('img.' + group_name).hasClass('button_closed'))
+                                {
+                                    // Close everything
+                                    $('tr.' + group_name).hide();
+                                }
+                            }
+
+                            function ToggleButton(button)
+                            {
+                                $(button).toggleClass('button_open');
+                                $(button).toggleClass('button_closed');
+                            }
+
+                            var i;
+                            for (i = 0; i < 31; i++) { 
+                              CreateGroup('group' + i);
+                            }
+                            // CreateGroup('group1');
+                            // CreateGroup('group2');
+                            
+
+                        </script>
+
+
+
+
+
+                            <div id="output"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <footer class="footer">
+            <div class="container-fluid">
+            </div>
+        </footer>
+
+    </div>
+</div>
+
+</body>
+
+<!--   Core JS Files -->
+<script src="/static/js/bootstrap.min.js" type="text/javascript"></script>
+
+<!--  Charts Plugin -->
+<script src="/static/js/chartist.min.js"></script>
+
+<!-- Light Bootstrap Table Core javascript and methods for Demo purpose -->
+<script src="/static/js/light-bootstrap-dashboard.js"></script>
+
+<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
+<script src="/static/js/demo.js"></script>
+
+
+
+                                          
+
+<!-- JS for pivot table -->
+<!-- <script type="text/javascript">
+    $(function(){
+        var derivers = $.pivotUtilities.derivers;
+        var renderers = $.extend($.pivotUtilities.renderers, $.pivotUtilities.c3_renderers);
+        var json_data = {{ table|safe }};
+     });
+</script> -->
+
+</html>
